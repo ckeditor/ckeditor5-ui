@@ -35,7 +35,6 @@ describe( 'BalloonPanelView', () => {
 		it( 'should create element from template', () => {
 			expect( view.element.tagName ).to.equal( 'DIV' );
 			expect( view.element.classList.contains( 'ck-balloon-panel' ) ).to.true;
-			expect( view.element.getAttribute( 'tabindex' ) ).to.equal( '-1' );
 		} );
 
 		it( 'should set default values', () => {
@@ -48,6 +47,16 @@ describe( 'BalloonPanelView', () => {
 
 		it( 'creates view#content collection', () => {
 			expect( view.content ).to.be.instanceOf( ViewCollection );
+		} );
+
+		// https://github.com/ckeditor/ckeditor5-ui/issues/206
+		it( 'blocks native #mousedown event', () => {
+			const evt = new Event( 'mousedown' );
+			const spy = sinon.spy( evt, 'preventDefault' );
+
+			view.element.dispatchEvent( evt );
+
+			sinon.assert.calledOnce( spy );
 		} );
 	} );
 

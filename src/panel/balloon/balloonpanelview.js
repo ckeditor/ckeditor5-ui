@@ -134,10 +134,12 @@ export default class BalloonPanelView extends View {
 					top: bind.to( 'top', toPx ),
 					left: bind.to( 'left', toPx ),
 					maxWidth: bind.to( 'maxWidth', toPx )
-				},
+				}
+			},
 
-				// Make this element `focusable` to be available for adding to FocusTracker.
-				tabindex: -1
+			on: {
+				// https://github.com/ckeditor/ckeditor5-ui/issues/206
+				mousedown: bind.to( evt => evt.preventDefault() )
 			},
 
 			children: this.content
