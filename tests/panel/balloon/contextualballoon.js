@@ -250,6 +250,20 @@ describe( 'ContextualBalloon', () => {
 		} );
 	} );
 
+	describe( 'clear()', () => {
+		it( 'should remove all views', () => {
+			balloon.add( {
+				view: viewB,
+				position: { target: 'fake' }
+			} );
+
+			balloon.clear();
+
+			expect( balloon.visibleView ).to.null;
+			expect( balloon.view.isVisible ).to.false;
+		} );
+	} );
+
 	describe( 'updatePosition()', () => {
 		it( 'should attach balloon to the target using position option from the first view in the stack', () => {
 			balloon.add( {
