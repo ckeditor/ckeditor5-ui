@@ -23,6 +23,10 @@ describe( 'LabeledInputView', () => {
 			expect( view.locale ).to.deep.equal( locale );
 		} );
 
+		it( 'should enable the input by default', () => {
+			expect( view.isEnabled ).to.be.true;
+		} );
+
 		it( 'should create view#inputView', () => {
 			expect( view.inputView ).to.instanceOf( InputView );
 		} );
@@ -44,6 +48,17 @@ describe( 'LabeledInputView', () => {
 		it( 'should have input view', () => {
 			expect( view.template.children.get( 1 ) ).to.equal( view.inputView );
 		} );
+
+		describe( 'DOM bindings', () => {
+			describe( 'class', () => {
+				it( 'should react on view#isEnabled', () => {
+					expect( view.element.classList.contains( 'ck-disabled' ) ).to.be.false;
+
+					view.isEnabled = false;
+					expect( view.element.classList.contains( 'ck-disabled' ) ).to.be.true;
+				} );
+			} );
+		} );
 	} );
 
 	describe( 'binding', () => {
@@ -57,6 +72,14 @@ describe( 'LabeledInputView', () => {
 			view.value = 'Lorem ipsum';
 
 			expect( view.inputView.value ).to.equal( 'Lorem ipsum' );
+		} );
+
+		it( 'should bind view#isEnabled to view.inputView#isEnabled', () => {
+			view.isEnabled = false;
+			expect( view.inputView.isEnabled ).to.be.false;
+
+			view.isEnabled = true;
+			expect( view.inputView.isEnabled ).to.be.true;
 		} );
 	} );
 
