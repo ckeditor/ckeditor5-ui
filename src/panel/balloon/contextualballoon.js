@@ -142,7 +142,7 @@ export default class ContextualBalloon extends Plugin {
 			this._stack.delete( view );
 
 			// Next we need to check if there is other view in stack to show.
-			const last = Array.from( this._stack.values() ).pop();
+			const last = getLastInStack( this._stack );
 
 			// If it is some other view.
 			if ( last ) {
@@ -156,6 +156,20 @@ export default class ContextualBalloon extends Plugin {
 			// Just remove given view from the stack.
 			this._stack.delete( view );
 		}
+	}
+
+	/**
+	 * Removes all views from the balloon, and also hides it.
+	 */
+	clear() {
+		const last = getLastInStack( this._stack );
+
+		if ( last && this.visibleView === last.view ) {
+			this.view.content.remove( last.view );
+		}
+
+		this._stack.clear();
+		this.view.hide();
 	}
 
 	/**
@@ -198,4 +212,13 @@ export default class ContextualBalloon extends Plugin {
 	_getBalloonPosition() {
 		return this._stack.values().next().value.position;
 	}
+}
+
+// Returns the last view from the given stack.
+//
+// @private
+// @param {Map} stack
+// @returns {module:ui/view~View|undefined}
+function getLastInStack( stack ) {
+	return Array.from( stack.values() ).pop();
 }
