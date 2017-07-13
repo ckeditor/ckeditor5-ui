@@ -39,6 +39,15 @@ export default class InputTextView extends View {
 		this.set( 'id' );
 
 		/**
+		 * Controls whether the button view is enabled, i.e. manipulates the
+		 * `readonly` DOM attribute of the {@link #element}.
+		 *
+		 * @observable
+		 * @member {Boolean} #isEnabled
+		 */
+		this.set( 'isEnabled', true );
+
+		/**
 		 * The `placeholder` attribute of the input.
 		 *
 		 * @observable
@@ -57,7 +66,8 @@ export default class InputTextView extends View {
 					'ck-input-text'
 				],
 				id: bind.to( 'id' ),
-				placeholder: bind.to( 'placeholder' )
+				placeholder: bind.to( 'placeholder' ),
+				readonly: bind.to( 'isEnabled', value => !value )
 			}
 		} );
 
