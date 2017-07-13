@@ -21,6 +21,10 @@ describe( 'InputTextView', () => {
 			expect( view.element.classList.contains( 'ck-input' ) ).to.be.true;
 			expect( view.element.classList.contains( 'ck-input-text' ) ).to.be.true;
 		} );
+
+		it( 'should enable the input by default', () => {
+			expect( view.isEnabled ).to.be.true;
+		} );
 	} );
 
 	describe( 'DOM bindings', () => {
@@ -64,6 +68,15 @@ describe( 'InputTextView', () => {
 				view.placeholder = 'baz';
 
 				expect( view.element.placeholder ).to.equal( 'baz' );
+			} );
+		} );
+
+		describe( 'readonly', () => {
+			it( 'should react on view#isEnabled', () => {
+				expect( view.element.readOnly ).to.be.false;
+
+				view.isEnabled = false;
+				expect( view.element.readOnly ).to.be.true;
 			} );
 		} );
 	} );

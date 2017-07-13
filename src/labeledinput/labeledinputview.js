@@ -47,6 +47,15 @@ export default class LabeledInputView extends View {
 		this.set( 'value' );
 
 		/**
+		 * Controls whether the view is enabled, which usually controls
+		 * the `readonly` DOM attribute of the {@link #inputView}.
+		 *
+		 * @observable
+		 * @member {Boolean} #isEnabled
+		 */
+		this.set( 'isEnabled', true );
+
+		/**
 		 * The label view.
 		 *
 		 * @member {module:ui/label/labelview~LabelView} #labelView
@@ -60,9 +69,15 @@ export default class LabeledInputView extends View {
 		 */
 		this.inputView = this._createInputView( InputView, id );
 
+		const bind = this.bindTemplate;
+
 		this.template = new Template( {
 			tag: 'div',
-
+			attributes: {
+				class: [
+					bind.if( 'isEnabled', 'ck-disabled', value => !value ),
+				]
+			},
 			children: [
 				this.labelView,
 				this.inputView
@@ -98,7 +113,7 @@ export default class LabeledInputView extends View {
 		const inputView = new InputView( this.locale );
 
 		inputView.id = id;
-		inputView.bind( 'value' ).to( this );
+		inputView.bind( 'value', 'isEnabled' ).to( this );
 
 		return inputView;
 	}
