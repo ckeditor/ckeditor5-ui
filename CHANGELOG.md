@@ -1,6 +1,63 @@
 Changelog
 =========
 
+## [1.0.0-alpha.2](https://github.com/ckeditor/ckeditor5-ui/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2017-11-14)
+
+### Bug fixes
+
+* `Template#getViews()` generator should not traverse native HTML elements. Closes [#337](https://github.com/ckeditor/ckeditor5-ui/issues/337). Closes [ckeditor/ckeditor5#657](https://github.com/ckeditor/ckeditor5/issues/657). ([894bad0](https://github.com/ckeditor/ckeditor5-ui/commit/894bad0))
+* Improved binding of the `value` attribute in `InputTextView`. Closes [#335](https://github.com/ckeditor/ckeditor5-ui/issues/335). ([823120b](https://github.com/ckeditor/ckeditor5-ui/commit/823120b))
+
+### Other changes
+
+* Implemented `View#render()` method which replaces rendering the `#element` upon the first access and incorporates the `#init()` method functionality. Closes [#262](https://github.com/ckeditor/ckeditor5-ui/issues/262). Closes [#302](https://github.com/ckeditor/ckeditor5-ui/issues/302). ([bf90ad5](https://github.com/ckeditor/ckeditor5-ui/commit/bf90ad5))
+
+   In other words – the `View#render()` method needs to be called to render a view and it sets the `View#element` itself. It can be called only once and it is done automatically if a view is added to some other view (as its child). If you need to add any additional logic to your component's initialization, then override the `render()` method (and remember to call `super.render()`).
+
+   Additionally, from now on `View#setTemplate()` and `View#extendTemplate()` methods are recommended as a shorthand for `view.template = new Template( { ... } )` and `Template.extend( view.template )`.
+
+    Please refer to the updated [documentation](https://docs.ckeditor.com/ckeditor5/latest/framework/guides/architecture/intro.html#UI-library) to learn more.
+* Removed legacy `width` and `height` attributes from the `BoxedEditorUIView`. Closes [#25](https://github.com/ckeditor/ckeditor5-ui/issues/25). ([ffa419a](https://github.com/ckeditor/ckeditor5-ui/commit/ffa419a))
+* The `ComponentFactory` should be case-insensitive. Closes [#324](https://github.com/ckeditor/ckeditor5-ui/issues/324). ([94417e9](https://github.com/ckeditor/ckeditor5-ui/commit/94417e9))
+* Updated translations. ([186f365](https://github.com/ckeditor/ckeditor5-ui/commit/186f365))
+
+### BREAKING CHANGES
+
+* The `View#init()` method in UI components has been renamed to `render()`. Please refer to the [documentation](https://docs.ckeditor.com/ckeditor5/latest/framework/guides/architecture/intro.html#UI-library) to learn more.
+* The `View#element` is no longer a getter which renders an element when first referenced. Use the `View#render()` method instead.
+* `Template#children` property became an `Array` (previously `ViewCollection`).
+* `View#addChildren()` and `View#removeChildren()` methods became `#registerChildren()` and `#deregisterChildren()`.
+* The DOM structure of the `StickyPanelView` has changed along with the class names. Please refer to the component documentation to learn more.
+
+
+## [1.0.0-alpha.1](https://github.com/ckeditor/ckeditor5-ui/compare/v0.10.0...v1.0.0-alpha.1) (2017-10-03)
+
+### Bug fixes
+
+* `ContextualBalloon` should remember position passed to `#updatePosition()`. Closes [#305](https://github.com/ckeditor/ckeditor5-ui/issues/305). Closes [ckeditor/ckeditor5-image#141](https://github.com/ckeditor/ckeditor5-image/issues/141). ([c787c0d](https://github.com/ckeditor/ckeditor5-ui/commit/c787c0d))
+* `ContextualToolbar` should not be positioned to a zero–width DOM rect when invoked for a multi-line forward selection. Closes [#308](https://github.com/ckeditor/ckeditor5-ui/issues/308). ([00b701b](https://github.com/ckeditor/ckeditor5-ui/commit/00b701b))
+* `ContextualToolbar` will accept the object format of `config.contextualToolbar`. Closes [#316](https://github.com/ckeditor/ckeditor5-ui/issues/316). ([d71cad8](https://github.com/ckeditor/ckeditor5-ui/commit/d71cad8))
+* Fixed sticky panel's `z-index` so it's correctly rendered above images (or other relatively positioned elements). Closes [#315](https://github.com/ckeditor/ckeditor5-ui/issues/315). ([00f2add](https://github.com/ckeditor/ckeditor5-ui/commit/00f2add))
+* The content of the `BalloonPanelView` should be selectable. Closes [#294](https://github.com/ckeditor/ckeditor5-ui/issues/294). Closes https://github.com/ckeditor/ckeditor5/issues/498. ([e5315df](https://github.com/ckeditor/ckeditor5-ui/commit/e5315df))
+
+### Features
+
+* Implemented `View#removeChildren()`, the opposite of `View#addChildren()`. Closes [#303](https://github.com/ckeditor/ckeditor5-ui/issues/303). ([0f1ea5a](https://github.com/ckeditor/ckeditor5-ui/commit/0f1ea5a))
+* Replaced `StickyToolbarView` with a generic `StickyPanelView`. Closes [#297](https://github.com/ckeditor/ckeditor5-ui/issues/297). ([b10b43c](https://github.com/ckeditor/ckeditor5-ui/commit/b10b43c))
+
+### Other changes
+
+* `ToolbarView#fillFromConfig()` will warn when the factory does not provide a component. Closes [#291](https://github.com/ckeditor/ckeditor5-ui/issues/291). Closes [ckeditor/ckeditor5#526](https://github.com/ckeditor/ckeditor5/issues/526). ([2e63e70](https://github.com/ckeditor/ckeditor5-ui/commit/2e63e70))
+* The `escPressHandler` function should be replaced by the `KeystrokeHandler`. Closes [#150](https://github.com/ckeditor/ckeditor5-ui/issues/150). ([b322744](https://github.com/ckeditor/ckeditor5-ui/commit/b322744))
+
+### BREAKING CHANGES
+
+* `Toolbar#fillFromConfig()` cannot be now called with an `undefined`. Make sure to use `normalizeToolbarConfig()` to get a reliable object.
+* The `escPressHandler` is no longer available. Please
+refer to the `KeystrokeHandler` helper to learn more.
+* The `StickyToolbarView` and corresponding CSS `.ck-sticky-panel` classes are no longer available. `StickyPanelView` + `ToolbarView` combo should be used instead.
+
+
 ## [0.10.0](https://github.com/ckeditor/ckeditor5-ui/compare/v0.9.0...v0.10.0) (2017-09-03)
 
 ### Bug fixes

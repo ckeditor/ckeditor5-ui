@@ -11,7 +11,11 @@ describe( 'InputTextView', () => {
 	beforeEach( () => {
 		view = new InputTextView();
 
-		view.init();
+		view.render();
+	} );
+
+	afterEach( () => {
+		view.destroy();
 	} );
 
 	describe( 'constructor()', () => {
@@ -36,6 +40,12 @@ describe( 'InputTextView', () => {
 				view.value = 'baz';
 
 				expect( view.element.value ).to.equal( 'baz' );
+
+				// To be sure that value can be changed multiple times using inline value attribute.
+				// There was a related bug in Chrome.
+				view.value = 'biz';
+
+				expect( view.element.value ).to.equal( 'biz' );
 			} );
 
 			it( 'should set to empty string when using `falsy` values', () => {
@@ -44,6 +54,17 @@ describe( 'InputTextView', () => {
 
 					expect( view.element.value ).to.equal( '' );
 				} );
+			} );
+
+			// See ckeditor5-ui/issues/335.
+			it( 'should set element value when value was defined before view#render', () => {
+				view = new InputTextView();
+
+				view.value = 'baz';
+
+				view.render();
+
+				expect( view.element.value ).to.equal( 'baz' );
 			} );
 		} );
 

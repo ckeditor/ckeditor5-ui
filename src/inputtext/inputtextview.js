@@ -8,7 +8,8 @@
  */
 
 import View from '../view';
-import Template from '../template';
+
+import '../../theme/components/inputtext/inputtext.css';
 
 /**
  * The text input view class.
@@ -56,7 +57,7 @@ export default class InputTextView extends View {
 
 		const bind = this.bindTemplate;
 
-		this.template = new Template( {
+		this.setTemplate( {
 			tag: 'input',
 			attributes: {
 				type: 'text',
@@ -69,10 +70,24 @@ export default class InputTextView extends View {
 				readonly: bind.to( 'isReadOnly' )
 			}
 		} );
+	}
 
-		// Note: `value` cannot be an HTML attribute, because it doesn't change HTMLInputElement value once changed.
-		this.on( 'change:value', ( evt, propertyName, value ) => {
-			this.element.value = value || '';
+	/**
+	 * @inheritDoc
+	 */
+	render() {
+		super.render();
+
+		const setValue = value => {
+			this.element.value = ( !value && value !== 0 ) ? '' : value;
+		};
+
+		setValue( this.value );
+
+		// Bind `this.value` to the DOM element's value.
+		// We cannot use `value` DOM attribute because removing it on Edge does not clear the DOM element's value property.
+		this.on( 'change:value', ( evt, name, value ) => {
+			setValue( value );
 		} );
 	}
 

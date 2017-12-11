@@ -12,6 +12,8 @@
 import View from '../view';
 import Template from '../template';
 
+import '../../theme/components/editorui/editorui.css';
+
 /**
  * The editor UI view class. Base class for the editor main views.
  *
@@ -46,9 +48,10 @@ export default class EditorUIView extends View {
 	/**
 	 * @inheritDoc
 	 */
-	init() {
+	render() {
+		super.render();
+
 		this._renderBodyCollection();
-		super.init();
 	}
 
 	/**

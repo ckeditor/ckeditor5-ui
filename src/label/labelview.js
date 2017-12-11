@@ -8,7 +8,8 @@
  */
 
 import View from '../view';
-import Template from '../template';
+
+import '../../theme/components/label/label.css';
 
 /**
  * The label view class.
@@ -40,7 +41,7 @@ export default class LabelView extends View {
 
 		const bind = this.bindTemplate;
 
-		this.template = new Template( {
+		this.setTemplate( {
 			tag: 'label',
 			attributes: {
 				class: [

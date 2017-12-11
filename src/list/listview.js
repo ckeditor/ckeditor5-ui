@@ -8,10 +8,11 @@
  */
 
 import View from '../view';
-import Template from '../template';
 import FocusTracker from '@ckeditor/ckeditor5-utils/src/focustracker';
 import FocusCycler from '../focuscycler';
 import KeystrokeHandler from '@ckeditor/ckeditor5-utils/src/keystrokehandler';
+
+import '../../theme/components/list/list.css';
 
 /**
  * The list view class.
@@ -69,7 +70,7 @@ export default class ListView extends View {
 			}
 		} );
 
-		this.template = new Template( {
+		this.setTemplate( {
 			tag: 'ul',
 
 			attributes: {
@@ -81,6 +82,18 @@ export default class ListView extends View {
 
 			children: this.items
 		} );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	render() {
+		super.render();
+
+		// Items added before rendering should be known to the #focusTracker.
+		for ( const item of this.items ) {
+			this.focusTracker.add( item.element );
+		}
 
 		this.items.on( 'add', ( evt, item ) => {
 			this.focusTracker.add( item.element );
@@ -89,16 +102,9 @@ export default class ListView extends View {
 		this.items.on( 'remove', ( evt, item ) => {
 			this.focusTracker.remove( item.element );
 		} );
-	}
 
-	/**
-	 * @inheritDoc
-	 */
-	init() {
 		// Start listening for the keystrokes coming from #element.
 		this.keystrokes.listenTo( this.element );
-
-		super.init();
 	}
 
 	/**

@@ -13,15 +13,22 @@ import Model from '../src/model';
 import CKEditorError from '@ckeditor/ckeditor5-utils/src/ckeditorerror';
 import EmitterMixin from '@ckeditor/ckeditor5-utils/src/emittermixin';
 import DomEmitterMixin from '@ckeditor/ckeditor5-utils/src/dom/emittermixin';
-import Collection from '@ckeditor/ckeditor5-utils/src/collection';
 import normalizeHtml from '@ckeditor/ckeditor5-utils/tests/_utils/normalizehtml';
 import log from '@ckeditor/ckeditor5-utils/src/log';
 
 testUtils.createSinonSandbox();
 
 let el, text;
+const injectedElements = [];
 
 describe( 'Template', () => {
+	// Clean-up document.body from the rendered elements.
+	afterEach( () => {
+		for ( const el of injectedElements ) {
+			el.remove();
+		}
+	} );
+
 	describe( 'constructor()', () => {
 		it( 'sets #_isRendered property', () => {
 			expect( new Template( { tag: 'p' } )._isRendered ).to.be.false;
@@ -29,6 +36,11 @@ describe( 'Template', () => {
 
 		it( 'accepts and normalizes the definition', () => {
 			const bind = Template.bind( new Model( {} ), Object.create( DomEmitterMixin ) );
+			const childNode = document.createElement( 'div' );
+			const childTemplate = new Template( {
+				tag: 'b'
+			} );
+
 			const tpl = new Template( {
 				tag: 'p',
 				attributes: {
@@ -49,7 +61,9 @@ describe( 'Template', () => {
 					'abc',
 					{
 						text: [ 'a', 'b' ]
-					}
+					},
+					childNode,
+					childTemplate
 				],
 				on: {
 					'a@span': bind.to( 'b' ),
@@ -66,12 +80,14 @@ describe( 'Template', () => {
 			expect( tpl.attributes.b[ 1 ] ).to.equal( 'baz' );
 			expect( tpl.attributes.c[ 0 ].value[ 0 ] ).to.be.instanceof( TemplateToBinding );
 
-			expect( tpl.children ).to.have.length( 4 );
-			expect( tpl.children.get( 0 ).text[ 0 ] ).to.equal( 'content' );
-			expect( tpl.children.get( 1 ).text[ 0 ] ).to.be.instanceof( TemplateToBinding );
-			expect( tpl.children.get( 2 ).text[ 0 ] ).to.equal( 'abc' );
-			expect( tpl.children.get( 3 ).text[ 0 ] ).to.equal( 'a' );
-			expect( tpl.children.get( 3 ).text[ 1 ] ).to.equal( 'b' );
+			expect( tpl.children ).to.have.length( 6 );
+			expect( tpl.children[ 0 ].text[ 0 ] ).to.equal( 'content' );
+			expect( tpl.children[ 1 ].text[ 0 ] ).to.be.instanceof( TemplateToBinding );
+			expect( tpl.children[ 2 ].text[ 0 ] ).to.equal( 'abc' );
+			expect( tpl.children[ 3 ].text[ 0 ] ).to.equal( 'a' );
+			expect( tpl.children[ 3 ].text[ 1 ] ).to.equal( 'b' );
+			expect( tpl.children[ 4 ] ).to.equal( childNode );
+			expect( tpl.children[ 5 ] ).to.equal( childTemplate );
 
 			expect( tpl.eventListeners[ 'a@span' ][ 0 ] ).to.be.instanceof( TemplateToBinding );
 			expect( tpl.eventListeners[ 'b@span' ][ 0 ] ).to.be.instanceof( TemplateToBinding );
@@ -92,8 +108,9 @@ describe( 'Template', () => {
 				text: 'foo'
 			} );
 
-			expect( elementTpl.children ).to.be.instanceof( Collection );
+			expect( elementTpl.children ).to.be.an( 'array' );
 			expect( elementTpl.children ).to.have.length( 0 );
+
 			// Text will never have children.
 			expect( textTpl.children ).to.be.undefined;
 		} );
@@ -114,12 +131,12 @@ describe( 'Template', () => {
 
 			expect( def.attributes ).to.not.equal( tpl.attributes );
 			expect( def.children ).to.not.equal( tpl.children );
-			expect( def.children[ 0 ] ).to.not.equal( tpl.children.get( 0 ) );
+			expect( def.children[ 0 ] ).to.not.equal( tpl.children[ 0 ] );
 			expect( def.attributes.a ).to.equal( 'foo' );
 			expect( def.children[ 0 ].tag ).to.equal( 'span' );
 
 			expect( tpl.attributes.a[ 0 ] ).to.equal( 'foo' );
-			expect( tpl.children.get( 0 ).tag ).to.equal( 'span' );
+			expect( tpl.children[ 0 ].tag ).to.equal( 'span' );
 		} );
 	} );
 
@@ -262,18 +279,21 @@ describe( 'Template', () => {
 						}
 					} );
 
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="color:red;"></p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="color:red"></p>' );
 				} );
 
 				it( 'renders as a static value (Array of values)', () => {
 					setElement( {
 						tag: 'p',
 						attributes: {
-							style: [ 'color: red;', 'display: block;' ]
+							style: {
+								color: 'red',
+								display: 'block'
+							}
 						}
 					} );
 
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="color:red;display:block;"></p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="color:red;display:block"></p>' );
 				} );
 
 				it( 'renders as a value bound to the model', () => {
@@ -284,11 +304,11 @@ describe( 'Template', () => {
 						}
 					} );
 
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="width:10px;"></p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="width:10px"></p>' );
 
 					observable.width = '1em';
 
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="width:1em;"></p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="width:1em"></p>' );
 				} );
 
 				it( 'renders as a value bound to the model (Array of bindings)', () => {
@@ -302,11 +322,11 @@ describe( 'Template', () => {
 						}
 					} );
 
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="width:10px;background-color:yellow;"></p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="background-color:yellow;width:10px"></p>' );
 
 					observable.width = '1em';
 
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="width:1em;background-color:yellow;"></p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="background-color:yellow;width:1em"></p>' );
 				} );
 
 				describe( 'object', () => {
@@ -323,13 +343,13 @@ describe( 'Template', () => {
 						} );
 
 						expect( normalizeHtml( el.outerHTML ) )
-							.to.equal( '<p style="width:10px;height:10px;background-color:yellow;"></p>' );
+							.to.equal( '<p style="background-color:yellow;height:10px;width:10px"></p>' );
 
 						observable.width = '20px';
 						observable.backgroundColor = 'green';
 
 						expect( normalizeHtml( el.outerHTML ) )
-							.to.equal( '<p style="width:20px;height:10px;background-color:green;"></p>' );
+							.to.equal( '<p style="background-color:green;height:10px;width:20px"></p>' );
 					} );
 
 					it( 'renders with empty string attributes', () => {
@@ -343,7 +363,7 @@ describe( 'Template', () => {
 							}
 						} );
 
-						expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="background-color:yellow;"></p>' );
+						expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="background-color:yellow"></p>' );
 
 						observable.backgroundColor = '';
 
@@ -426,7 +446,7 @@ describe( 'Template', () => {
 
 			it( 'renders view children', () => {
 				const v1 = getView( {
-					tag: 'span',
+					tag: 'b',
 					attributes: {
 						class: [
 							'v1'
@@ -435,7 +455,7 @@ describe( 'Template', () => {
 				} );
 
 				const v2 = getView( {
-					tag: 'span',
+					tag: 'b',
 					attributes: {
 						class: [
 							'v2'
@@ -443,22 +463,36 @@ describe( 'Template', () => {
 					}
 				} );
 
-				const tpl = new Template( {
-					tag: 'p',
-					children: [ v1, v2 ]
+				const v3 = getView( {
+					tag: 'b',
+					attributes: {
+						class: [
+							'v3'
+						]
+					}
 				} );
 
-				expect( tpl.children.get( 0 ) ).to.equal( v1 );
-				expect( tpl.children.get( 1 ) ).to.equal( v2 );
+				v3.render();
+
+				const tpl = new Template( {
+					tag: 'p',
+					children: [ v1, v2, v3 ]
+				} );
+
+				expect( tpl.children[ 0 ] ).to.equal( v1 );
+				expect( tpl.children[ 1 ] ).to.equal( v2 );
+				expect( tpl.children[ 2 ] ).to.equal( v3 );
 
 				const rendered = tpl.render();
 
-				expect( normalizeHtml( rendered.outerHTML ) ).to.equal( '<p><span class="v1"></span><span class="v2"></span></p>' );
+				expect( normalizeHtml( rendered.outerHTML ) )
+					.to.equal( '<p><b class="v1"></b><b class="v2"></b><b class="v3"></b></p>' );
 
 				// Make sure the child views will not re–render their elements but
 				// use ones rendered by the template instance above.
 				expect( v1.element ).to.equal( rendered.firstChild );
-				expect( v2.element ).to.equal( rendered.lastChild );
+				expect( v2.element ).to.equal( rendered.children[ 1 ] );
+				expect( v3.element ).to.equal( rendered.lastChild );
 			} );
 
 			it( 'renders view collection', () => {
@@ -500,6 +534,38 @@ describe( 'Template', () => {
 				expect( collection._parentElement ).to.equal( rendered );
 			} );
 
+			it( 'renders DOM nodes', () => {
+				const view = new View();
+
+				view.set( {
+					foo: 'bar',
+					bar: 'baz'
+				} );
+
+				const bind = Template.bind( view, view );
+
+				const childA = new Template( {
+					tag: 'b',
+					attributes: {
+						class: bind.to( 'foo' )
+					}
+				} ).render();
+
+				const childB = new Template( {
+					text: bind.to( 'bar' )
+				} ).render();
+
+				const rendered = new Template( {
+					tag: 'p',
+					children: [
+						childA,
+						childB
+					]
+				} ).render();
+
+				expect( normalizeHtml( rendered.outerHTML ) ).to.equal( '<p><b class="bar"></b>baz</p>' );
+			} );
+
 			// #117
 			it( 'renders template children', () => {
 				const childTplA = new Template( {
@@ -532,7 +598,7 @@ describe( 'Template', () => {
 				// words to explain it. But what actually matters is that it proves the Template
 				// class is free of "Maximum call stack size exceeded" error in certain
 				// situations.
-				view.template = new Template( {
+				view.setTemplate( {
 					tag: 'span',
 
 					children: [
@@ -562,9 +628,9 @@ describe( 'Template', () => {
 				} );
 
 				// Make sure child instances weren't cloned.
-				expect( tpl.children.get( 0 ) ).to.equal( childTplA );
-				expect( tpl.children.get( 1 ) ).to.equal( childTplB );
-				expect( tpl.children.get( 2 ) ).to.equal( childTplC );
+				expect( tpl.children[ 0 ] ).to.equal( childTplA );
+				expect( tpl.children[ 1 ] ).to.equal( childTplB );
+				expect( tpl.children[ 2 ] ).to.equal( childTplC );
 
 				expect( normalizeHtml( tpl.render().outerHTML ) ).to.equal(
 					'<p><a></a><b></b><i>foo</i></p>'
@@ -647,7 +713,8 @@ describe( 'Template', () => {
 		let observable, domEmitter, bind;
 
 		beforeEach( () => {
-			el = getElement( { tag: 'div' } );
+			setElement( { tag: 'div' } );
+
 			text = document.createTextNode( '' );
 
 			observable = new Model( {
@@ -737,7 +804,7 @@ describe( 'Template', () => {
 				} ).apply( el );
 
 				expect( normalizeHtml( el.outerHTML ) ).to.equal(
-					'<div class="default a b" x="bar"></div>'
+					'<div class="a b default" x="bar"></div>'
 				);
 			} );
 
@@ -788,7 +855,7 @@ describe( 'Template', () => {
 						}
 					} ).apply( el );
 
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="color:red;display:block;"></p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p style="color:red;display:block"></p>' );
 				} );
 
 				it( 'applies as a static value (Array of values)', () => {
@@ -806,7 +873,7 @@ describe( 'Template', () => {
 					} ).apply( el );
 
 					expect( normalizeHtml( el.outerHTML ) ).to.equal(
-						'<p style="color:red;display:block;float:left;overflow:hidden;"></p>'
+						'<p style="color:red;display:block;float:left;overflow:hidden"></p>'
 					);
 				} );
 
@@ -831,7 +898,7 @@ describe( 'Template', () => {
 					} ).apply( el );
 
 					expect( normalizeHtml( el.outerHTML ) )
-						.to.equal( '<p style="width:20px;height:10px;float:left;background-color:green;"></p>' );
+						.to.equal( '<p style="background-color:green;float:left;height:10px;width:20px"></p>' );
 				} );
 
 				it( 'applies when bound to observable', () => {
@@ -855,13 +922,13 @@ describe( 'Template', () => {
 					} ).apply( el );
 
 					expect( normalizeHtml( el.outerHTML ) ).to.equal(
-						'<p style="left:20px;width:10px;float:left;background-color:green;"></p>'
+						'<p style="background-color:green;float:left;left:20px;width:10px"></p>'
 					);
 
 					observable.width = '100px';
 
 					expect( normalizeHtml( el.outerHTML ) ).to.equal(
-						'<p style="left:20px;width:100px;float:left;background-color:green;"></p>'
+						'<p style="background-color:green;float:left;left:20px;width:100px"></p>'
 					);
 				} );
 			} );
@@ -1003,14 +1070,14 @@ describe( 'Template', () => {
 
 				expect( normalizeHtml( el.outerHTML ) ).to.equal( '<div class="applied-parent-qux" id="BAR">' +
 					'<a class="a1 a2 applied-A-bar" id="applied-A">applied-a</a>' +
-					'<b class="b1 b2 applied-B-qux" id="applied-B">applied-b</b>' +
+					'<b class="applied-B-qux b1 b2" id="applied-B">applied-b</b>' +
 				'</div>' );
 
 				observable.foo = 'updated';
 
 				expect( normalizeHtml( el.outerHTML ) ).to.equal( '<div class="applied-parent-qux" id="UPDATED">' +
 					'<a class="a1 a2 applied-A-updated" id="applied-A">applied-a</a>' +
-					'<b class="b1 b2 applied-B-qux" id="applied-B">applied-b</b>' +
+					'<b class="applied-B-qux b1 b2" id="applied-B">applied-b</b>' +
 				'</div>' );
 
 				document.body.appendChild( el );
@@ -1317,22 +1384,22 @@ describe( 'Template', () => {
 
 					tpl.apply( el );
 					expect( normalizeHtml( el.outerHTML ) ).to.equal(
-						'<a style="font-weight:bold;overflow:visible;">' +
-							'<b style="color:red;display:block;"></b>' +
+						'<a style="font-weight:bold;overflow:visible">' +
+							'<b style="color:red;display:block"></b>' +
 						'</a>'
 					);
 
 					tpl.revert( el );
 					expect( normalizeHtml( el.outerHTML ) ).to.equal(
-						'<a style="font-weight:bold;">' +
-							'<b style="color:red;"></b>' +
+						'<a style="font-weight:bold">' +
+							'<b style="color:red"></b>' +
 						'</a>'
 					);
 
 					observable.overflow = 'hidden';
 					expect( normalizeHtml( el.outerHTML ) ).to.equal(
-						'<a style="font-weight:bold;">' +
-							'<b style="color:red;"></b>' +
+						'<a style="font-weight:bold">' +
+							'<b style="color:red"></b>' +
 						'</a>'
 					);
 				} );
@@ -1408,17 +1475,17 @@ describe( 'Template', () => {
 
 				tpl.apply( el );
 				expect( normalizeHtml( el.outerHTML ) ).to.equal(
-					'<div class="div1 div2" style="font-weight:bold;">' +
+					'<div class="div1 div2" style="font-weight:bold">' +
 						'<a class="a1 a2 x y" data-new-attr="foo">applied-a</a>' +
-						'<b class="b1 b2 a b bar">applied-b</b>' +
+						'<b class="a b b1 b2 bar">applied-b</b>' +
 					'</div>'
 				);
 
 				observable.foo = 'baz';
 				expect( normalizeHtml( el.outerHTML ) ).to.equal(
-					'<div class="div1 div2" style="font-weight:bold;">' +
+					'<div class="div1 div2" style="font-weight:bold">' +
 						'<a class="a1 a2 x y" data-new-attr="foo">applied-a</a>' +
-						'<b class="b1 b2 a b baz">applied-b</b>' +
+						'<b class="a b b1 b2 baz">applied-b</b>' +
 					'</div>'
 				);
 
@@ -1438,6 +1505,62 @@ describe( 'Template', () => {
 				dispatchEvent( el.firstChild, 'keyup' );
 				sinon.assert.calledOnce( spy );
 			} );
+		} );
+	} );
+
+	describe( 'getViews()', () => {
+		it( 'returns iterator', () => {
+			const template = new Template( {} );
+
+			expect( template.getViews().next ).to.be.a( 'function' );
+			expect( Array.from( template.getViews() ) ).to.have.length( 0 );
+		} );
+
+		it( 'returns all child views', () => {
+			const viewA = new View();
+			const viewB = new View();
+			const viewC = new View();
+			const template = new Template( {
+				tag: 'div',
+				children: [
+					viewA,
+					{
+						tag: 'div',
+						children: [
+							viewB
+						]
+					},
+					viewC
+				]
+			} );
+
+			expect( Array.from( template.getViews() ) ).to.have.members( [ viewA, viewB, viewC ] );
+		} );
+
+		// https://github.com/ckeditor/ckeditor5-ui/issues/337
+		it( 'does not traverse non–Template children', () => {
+			const viewA = new View();
+			const viewB = new View();
+			const viewC = new View();
+
+			const template = new Template( {
+				tag: 'div',
+				children: [
+					viewA,
+				]
+			} );
+
+			// Technically, this kind of child is invalid but the aim of this test is to
+			// check if the generator will accidentally traverse non–Template objects
+			// like native HTML elements, which also have "children" property. It could happen
+			// because it is possible to pass HTML elements directly to the templateDefinition.
+			template.children.push( {
+				children: [ viewB ]
+			} );
+
+			template.children.push( viewC );
+
+			expect( Array.from( template.getViews() ) ).to.have.members( [ viewA, viewC ] );
 		} );
 	} );
 
@@ -1812,11 +1935,11 @@ describe( 'Template', () => {
 
 					observable.foo = 'a';
 					observable.baz = 'b';
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="ck-class a b foo-is-a ck-end">abc</p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="a b ck-class ck-end foo-is-a">abc</p>' );
 
 					observable.foo = 'c';
 					observable.baz = 'd';
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="ck-class c d foo-is-c ck-end">abc</p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="c ck-class ck-end d foo-is-c">abc</p>' );
 				} );
 
 				it( 'allows binding attribute to the observable – array of bindings (Text Node)', () => {
@@ -2052,10 +2175,10 @@ describe( 'Template', () => {
 					} );
 
 					observable.foo = observable.bar = true;
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="ck-class foo-set ck-end">abc</p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="ck-class ck-end foo-set">abc</p>' );
 
 					observable.foo = observable.bar = false;
-					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="ck-class bar-not-set ck-end">abc</p>' );
+					expect( normalizeHtml( el.outerHTML ) ).to.equal( '<p class="bar-not-set ck-class ck-end">abc</p>' );
 				} );
 
 				it( 'allows binding attribute to the observable – value of an attribute processed by a callback', () => {
@@ -2671,7 +2794,7 @@ describe( 'Template', () => {
 							}
 						]
 					},
-					'<p><span class="foo bar"></span></p>'
+					'<p><span class="bar foo"></span></p>'
 				);
 			} );
 
@@ -2739,7 +2862,7 @@ describe( 'Template', () => {
 					]
 				} );
 
-				Template.extend( template.children.get( 0 ), {
+				Template.extend( template.children[ 0 ], {
 					attributes: {
 						class: 'bar'
 					}
@@ -2773,7 +2896,7 @@ describe( 'Template', () => {
 					]
 				} );
 
-				Template.extend( template.children.get( 0 ), {
+				Template.extend( template.children[ 0 ], {
 					attributes: {
 						class: 'B',
 					},
@@ -2898,7 +3021,10 @@ function getElement( template ) {
 
 function setElement( template ) {
 	el = new Template( template ).render();
+
 	document.body.appendChild( el );
+
+	injectedElements.push( el );
 }
 
 function extensionTest( baseDefinition, extendedDefinition, expectedHtml ) {
@@ -2911,6 +3037,8 @@ function extensionTest( baseDefinition, extendedDefinition, expectedHtml ) {
 	document.body.appendChild( el );
 
 	expect( normalizeHtml( el.outerHTML ) ).to.equal( expectedHtml );
+
+	injectedElements.push( el );
 
 	return el;
 }
@@ -2928,7 +3056,7 @@ function dispatchEvent( el, domEvtName ) {
 function getView( def ) {
 	const view = new View();
 
-	view.template = new Template( def );
+	view.setTemplate( def );
 
 	return view;
 }

@@ -6,7 +6,6 @@
 /* globals document */
 
 import BalloonPanelView from '../../../../src/panel/balloon/balloonpanelview';
-import '@ckeditor/ckeditor5-theme-lark/theme/theme.scss';
 
 const defaultPositions = BalloonPanelView.defaultPositions;
 const container = document.querySelector( '#container' );
@@ -17,6 +16,7 @@ for ( const i in defaultPositions ) {
 	container.appendChild( target );
 
 	const balloon = new BalloonPanelView();
+	balloon.render();
 	balloon.element.textContent = i;
 	document.body.appendChild( balloon.element );
 

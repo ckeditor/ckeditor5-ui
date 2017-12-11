@@ -8,13 +8,14 @@
  */
 
 import View from '../view';
-import Template from '../template';
 import FocusTracker from '@ckeditor/ckeditor5-utils/src/focustracker';
 import FocusCycler from '../focuscycler';
 import KeystrokeHandler from '@ckeditor/ckeditor5-utils/src/keystrokehandler';
 import ToolbarSeparatorView from './toolbarseparatorview';
 import preventDefault from '../bindings/preventdefault.js';
 import log from '@ckeditor/ckeditor5-utils/src/log';
+
+import '../../theme/components/toolbar/toolbar.css';
 
 /**
  * The toolbar view class.
@@ -72,7 +73,7 @@ export default class ToolbarView extends View {
 			}
 		} );
 
-		this.template = new Template( {
+		this.setTemplate( {
 			tag: 'div',
 			attributes: {
 				class: [
@@ -87,6 +88,18 @@ export default class ToolbarView extends View {
 				mousedown: preventDefault( this )
 			}
 		} );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	render() {
+		super.render();
+
+		// Items added before rendering should be known to the #focusTracker.
+		for ( const item of this.items ) {
+			this.focusTracker.add( item.element );
+		}
 
 		this.items.on( 'add', ( evt, item ) => {
 			this.focusTracker.add( item.element );
@@ -95,16 +108,9 @@ export default class ToolbarView extends View {
 		this.items.on( 'remove', ( evt, item ) => {
 			this.focusTracker.remove( item.element );
 		} );
-	}
 
-	/**
-	 * @inheritDoc
-	 */
-	init() {
 		// Start listening for the keystrokes coming from #element.
 		this.keystrokes.listenTo( this.element );
-
-		super.init();
 	}
 
 	/**
@@ -122,10 +128,6 @@ export default class ToolbarView extends View {
 	 * @param {module:ui/componentfactory~ComponentFactory} factory A factory producing toolbar items.
 	 */
 	fillFromConfig( config, factory ) {
-		if ( !config ) {
-			return;
-		}
-
 		config.map( name => {
 			if ( name == '|' ) {
 				this.items.add( new ToolbarSeparatorView() );
@@ -141,6 +143,10 @@ export default class ToolbarView extends View {
 				 *
 				 * Make sure the plugin responsible for this toolbar item is loaded and the toolbar configuration
 				 * is correct, e.g. {@link module:basic-styles/bold~Bold} is loaded for the `'bold'` toolbar item.
+				 *
+				 * You can use the following snippet to retrieve all available toolbar items:
+				 *
+				 *		Array.from( editor.ui.componentFactory.names );
 				 *
 				 * @error toolbarview-item-unavailable
 				 * @param {String} name The name of the component.

@@ -7,13 +7,13 @@
  * @module ui/toolbar/contextual/contextualtoolbar
  */
 
-import Template from '../../template';
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import ContextualBalloon from '../../panel/balloon/contextualballoon';
 import ToolbarView from '../toolbarview';
 import BalloonPanelView from '../../panel/balloon/balloonpanelview.js';
 import debounce from '@ckeditor/ckeditor5-utils/src/lib/lodash/debounce';
 import Rect from '@ckeditor/ckeditor5-utils/src/dom/rect';
+import normalizeToolbarConfig from '../normalizetoolbarconfig';
 
 /**
  * The contextual toolbar.
@@ -50,7 +50,7 @@ export default class ContextualToolbar extends Plugin {
 		 */
 		this.toolbarView = new ToolbarView( editor.locale );
 
-		Template.extend( this.toolbarView.template, {
+		this.toolbarView.extendTemplate( {
 			attributes: {
 				class: [
 					'ck-editor-toolbar',
@@ -58,6 +58,8 @@ export default class ContextualToolbar extends Plugin {
 				]
 			}
 		} );
+
+		this.toolbarView.render();
 
 		/**
 		 * The contextual balloon plugin instance.
@@ -89,15 +91,15 @@ export default class ContextualToolbar extends Plugin {
 
 	/**
 	 * Creates toolbar components based on given configuration.
-	 * This needs to be done when all plugins will be ready.
+	 * This needs to be done when all plugins are ready.
 	 *
 	 * @inheritDoc
 	 */
 	afterInit() {
-		const config = this.editor.config.get( 'contextualToolbar' );
+		const config = normalizeToolbarConfig( this.editor.config.get( 'contextualToolbar' ) );
 		const factory = this.editor.ui.componentFactory;
 
-		this.toolbarView.fillFromConfig( config, factory );
+		this.toolbarView.fillFromConfig( config.items, factory );
 	}
 
 	/**
@@ -296,5 +298,5 @@ function getBalloonPositions( isBackward ) {
  *
  * Read also about configuring the main editor toolbar in {@link module:core/editor/editorconfig~EditorConfig#toolbar}.
  *
- * @member {Array.<String>} module:core/editor/editorconfig~EditorConfig#contextualToolbar
+ * @member {Array.<String>|Object} module:core/editor/editorconfig~EditorConfig#contextualToolbar
  */
