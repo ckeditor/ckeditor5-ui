@@ -195,6 +195,15 @@ describe( 'View', () => {
 	} );
 
 	describe( 'render()', () => {
+		it( 'is decorated', done => {
+			view.on( 'render', () => {
+				expect( view.isRendered ).to.be.true;
+				done();
+			} );
+
+			view.render();
+		} );
+
 		it( 'should throw if already rendered', () => {
 			const view = new View();
 
