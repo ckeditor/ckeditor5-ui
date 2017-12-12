@@ -7,11 +7,10 @@
  * @module ui/dropdown/list/createlistdropdown
  */
 
-/* global document */
-
 import ListView from '../../list/listview';
 import ListItemView from '../../list/listitemview';
 import createDropdown from '../createdropdown';
+import clickOutsideHandler from '../../bindings/clickoutsidehandler';
 
 /**
  * Creates an instance of {@link module:ui/dropdown/list/listdropdownview~ListDropdownView} class using
@@ -69,12 +68,17 @@ export default function createListDropdown( model, locale ) {
 
 	dropdownView.panelView.children.add( listView );
 
-	dropdownView.on( 'change:isOpen', ( evt, name, value ) => {
-		if ( value ) {
-			attachDocumentClickListener( dropdownView );
-		} else {
-			dropdownView.stopListening( document );
-		}
+	// Make sure the dropdown closes when the user clicks outside of it.
+	// Note: #element is not available until #render.
+	dropdownView.on( 'render', () => {
+		clickOutsideHandler( {
+			emitter: dropdownView,
+			activator: () => dropdownView.isOpen,
+			callback: () => {
+				dropdownView.isOpen = false;
+			},
+			contextElements: [ dropdownView.element ]
+		} );
 	} );
 
 	// Close the dropdown when one of the list items has been executed.
@@ -101,20 +105,4 @@ export default function createListDropdown( model, locale ) {
 	} );
 
 	return dropdownView;
-}
-
-// Attaches a "click" listener in DOM to check if any element outside
-// the dropdown has been clicked.
-//
-// @private
-// @param {module:ui/dropdown/listdropdownview~ListDropdownView} dropdownView
-function attachDocumentClickListener( dropdownView ) {
-	// TODO: It will probably be focus/blur-based rather than click. It should be bound
-	// to focusmanager of some sort.
-	dropdownView.listenTo( document, 'click', ( evtInfo, { target: domEvtTarget } ) => {
-		// Collapse the dropdown when the webpage outside of the component is clicked.
-		if ( dropdownView.element != domEvtTarget && !dropdownView.element.contains( domEvtTarget ) ) {
-			dropdownView.isOpen = false;
-		}
-	} );
 }
