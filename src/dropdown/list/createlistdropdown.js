@@ -69,13 +69,16 @@ export default function createListDropdown( model, locale ) {
 	dropdownView.panelView.children.add( listView );
 
 	// Make sure the dropdown closes when the user clicks outside of it.
-	clickOutsideHandler( {
-		emitter: dropdownView,
-		activator: () => dropdownView.isOpen,
-		callback: () => {
-			dropdownView.isOpen = false;
-		},
-		contextElements: [ dropdownView.element ]
+	// Note: #element is not available until #render.
+	dropdownView.on( 'render', () => {
+		clickOutsideHandler( {
+			emitter: dropdownView,
+			activator: () => dropdownView.isOpen,
+			callback: () => {
+				dropdownView.isOpen = false;
+			},
+			contextElements: [ dropdownView.element ]
+		} );
 	} );
 
 	// Close the dropdown when one of the list items has been executed.
