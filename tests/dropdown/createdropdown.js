@@ -78,6 +78,25 @@ describe( 'createDropdown', () => {
 			{ isEnabled: false }
 		);
 	} );
+	it( 'binds dropdown#withText to the model', () => {
+		const modelDef = {
+			label: 'foo',
+			isEnabled: true,
+			withText: false,
+			tooltip: false
+		};
+
+		const model = new Model( modelDef );
+		const view = createDropdown( model );
+
+		assertBinding( view,
+			{ withText: false },
+			[
+				[ model, { withText: true } ]
+			],
+			{ withText: true }
+		);
+	} );
 
 	it( 'accepts locale', () => {
 		const locale = {};

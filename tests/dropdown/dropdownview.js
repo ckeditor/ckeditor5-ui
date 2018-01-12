@@ -105,6 +105,16 @@ describe( 'DropdownView', () => {
 						expect( view.element.classList.contains( 'ck-disabled' ) ).to.be.true;
 					} );
 				} );
+
+				describe( 'view#element .ck-dropdown__withtext class to view#withText', () => {
+					it( 'is activated', () => {
+						view.withText = true;
+						expect( view.element.classList.contains( 'ck-dropdown__withtext' ) ).to.be.true;
+
+						view.withText = false;
+						expect( view.element.classList.contains( 'ck-dropdown__withtext' ) ).to.be.false;
+					} );
+				} );
 			} );
 		} );
 	} );

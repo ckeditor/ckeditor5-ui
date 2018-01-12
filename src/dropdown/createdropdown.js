@@ -44,7 +44,7 @@ export default function createDropdown( model, locale ) {
 	const panelView = new DropdownPanelView( locale );
 	const dropdownView = new DropdownView( locale, buttonView, panelView );
 
-	dropdownView.bind( 'isEnabled' ).to( model );
+	dropdownView.bind( 'isEnabled', 'withText' ).to( model );
 	buttonView.bind( 'label', 'isEnabled', 'withText', 'keystroke', 'tooltip', 'icon' ).to( model );
 	buttonView.bind( 'isOn' ).to( model, 'isOn', dropdownView, 'isOpen', ( isOn, isOpen ) => {
 		return isOn || isOpen;

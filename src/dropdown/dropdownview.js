@@ -89,6 +89,16 @@ export default class DropdownView extends View {
 		this.set( 'isEnabled', true );
 
 		/**
+		 * Controls whether the dropdown's button has text label enabled.
+		 *
+		 * See {@link module:ui/button/buttonview~ButtonView#withText}.
+		 *
+		 * @observable
+		 * @member {Boolean} #withText
+		 */
+		this.set( 'withText', false );
+
+		/**
 		 * Tracks information about DOM focus in the dropdown.
 		 *
 		 * @readonly
@@ -114,7 +124,8 @@ export default class DropdownView extends View {
 			attributes: {
 				class: [
 					'ck-dropdown',
-					bind.to( 'isEnabled', isEnabled => isEnabled ? '' : 'ck-disabled' )
+					bind.to( 'isEnabled', isEnabled => isEnabled ? '' : 'ck-disabled' ),
+					bind.to( 'withText', withText => withText ? 'ck-dropdown__withtext' : '' )
 				]
 			},
 
