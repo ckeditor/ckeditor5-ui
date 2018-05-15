@@ -11,6 +11,7 @@ import View from '../view';
 import IconView from '../icon/iconview';
 import TooltipView from '../tooltip/tooltipview';
 
+import env from '@ckeditor/ckeditor5-utils/src/env';
 import { getEnvKeystrokeText } from '@ckeditor/ckeditor5-utils/src/keyboard';
 
 import '../../theme/components/button/button.css';
@@ -229,7 +230,8 @@ export default class ButtonView extends View {
 	 * @returns {String}
 	 */
 	_getTooltipString( tooltip, label, keystroke ) {
-		if ( tooltip ) {
+		// https://github.com/ckeditor/ckeditor5/issues/920
+		if ( tooltip && !env.isIOS ) {
 			if ( typeof tooltip == 'string' ) {
 				return tooltip;
 			} else {

@@ -11,6 +11,7 @@ import IconView from '../../src/icon/iconview';
 import TooltipView from '../../src/tooltip/tooltipview';
 import View from '../../src/view';
 import ViewCollection from '../../src/viewcollection';
+import env from '@ckeditor/ckeditor5-utils/src/env';
 
 testUtils.createSinonSandbox();
 
@@ -113,6 +114,20 @@ describe( 'ButtonView', () => {
 
 				view.tooltipPosition = 'n';
 				expect( view.tooltipView.position ).to.equal( 'n' );
+			} );
+
+			// https://github.com/ckeditor/ckeditor5/issues/920
+			it( 'is disabled on iOS devices', () => {
+				const initialEnvIOS = env.isIOS;
+				env.isIOS = true;
+
+				view = new ButtonView( locale );
+				view.tooltip = 'foo';
+				view.render();
+
+				expect( view.tooltipView.text ).to.equal( '' );
+
+				env.isIOS = initialEnvIOS;
 			} );
 
 			describe( 'defined as a Boolean', () => {
