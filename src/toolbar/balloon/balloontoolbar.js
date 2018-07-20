@@ -75,6 +75,15 @@ export default class BalloonToolbar extends Plugin {
 		this._balloon = editor.plugins.get( ContextualBalloon );
 
 		/**
+		 * A helper flag used by {@link #_fireToggleVisibilityDebounced} to indicate that there is
+		 * a {@link #event:_toggleVisibilityDebounced} event pending (being debounced).
+		 *
+		 * @private
+		 * @type {Boolean}
+		 */
+		this._isVisibilityTogglePending = false;
+
+		/**
 		 * Fires {@link #event:_selectionChangeDebounced} event using `lodash#debounce`.
 		 *
 		 * This function is stored as a plugin property to make possible to cancel
@@ -83,7 +92,35 @@ export default class BalloonToolbar extends Plugin {
 		 * @private
 		 * @type {Function}
 		 */
-		this._fireSelectionChangeDebounced = debounce( () => this.fire( '_selectionChangeDebounced' ), 200 );
+		this._fireSelectionChangeDebounced = debounce( () => {
+			this.fire( '_selectionChangeDebounced' );
+		}, 200 );
+
+		/**
+		 * A helper function used by {@link #_fireToggleVisibilityDebounced} to fire
+		 * {@link #event:_toggleVisibilityDebounced}.
+		 *
+		 * This function is stored as a plugin property to make possible to cancel
+		 * trailing debounced invocation on destroy.
+		 *
+		 * @private
+		 * @type {Function}
+		 */
+		this._toggleVisibilityDebounced = debounce( ( eventName, data ) => {
+			this.fire( '_toggleVisibilityDebounced', eventName, data );
+		}, 10 );
+
+		/**
+		 * Fires {@link #event:_toggleVisibilityDebounced} event using `lodash#debounce`. Once executed,
+		 * it sets the {@link #_isVisibilityTogglePending} flag `true` to notify other pieces of code
+		 * that debouncing is in progress.
+		 */
+		this._fireToggleVisibilityDebounced = ( eventName, data ) => {
+			// Let the position updater know that showing/hiding is pending.
+			this._isVisibilityTogglePending = true;
+
+			this._toggleVisibilityDebounced( eventName, data );
+		};
 
 		// The appearance of the BalloonToolbar method is event–driven.
 		// It is possible to stop the #show event and this prevent the toolbar from showing up.
@@ -97,33 +134,45 @@ export default class BalloonToolbar extends Plugin {
 		const editor = this.editor;
 		const selection = editor.model.document.selection;
 
-		// Show/hide the toolbar on editable focus/blur.
 		this.listenTo( this.focusTracker, 'change:isFocused', ( evt, name, isFocused ) => {
-			const isToolbarVisible = this._balloon.visibleView === this.toolbarView;
-
-			if ( !isFocused && isToolbarVisible ) {
-				this.hide();
-			} else if ( isFocused ) {
-				this.show();
-			}
+			this._fireToggleVisibilityDebounced( 'change:isFocused', isFocused );
 		} );
 
-		// Hide the toolbar when the selection is changed by a direct change or has changed to collapsed.
 		this.listenTo( selection, 'change:range', ( evt, data ) => {
-			if ( data.directChange || selection.isCollapsed ) {
-				this.hide();
-			}
-
-			// Fire internal `_selectionChangeDebounced` event to use it for showing
-			// the toolbar after the selection stops changing.
 			this._fireSelectionChangeDebounced();
+			this._fireToggleVisibilityDebounced( 'change:range', data );
 		} );
 
-		// Show the toolbar when the selection stops changing.
 		this.listenTo( this, '_selectionChangeDebounced', () => {
-			if ( this.editor.editing.view.document.isFocused ) {
+			this._fireToggleVisibilityDebounced( '_selectionChangeDebounced' );
+		} );
+
+		this.listenTo( this, '_toggleVisibilityDebounced', ( evt, eventName, data ) => {
+			// Hide the toolbar when the selection is changed by a direct change or has changed to collapsed.
+			if ( eventName == 'change:range' ) {
+				if ( data.directChange || selection.isCollapsed ) {
+					this.hide();
+				}
+			}
+
+			// Show/hide the toolbar on editable focus/blur.
+			else if ( eventName == 'change:isFocused' ) {
+				const isFocused = data;
+
+				if ( !isFocused && this._isToolbarVisible ) {
+					this.hide();
+				} else if ( isFocused ) {
+					this.show();
+				}
+			}
+
+			// _selectionChangeDebounced Show the toolbar when the selection stops changing.
+			else if ( this.focusTracker.isFocused ) {
 				this.show();
 			}
+
+			// Let the position updater know that no showing/hiding is pending.
+			this._isVisibilityTogglePending = false;
 		} );
 	}
 
@@ -138,6 +187,16 @@ export default class BalloonToolbar extends Plugin {
 		const factory = this.editor.ui.componentFactory;
 
 		this.toolbarView.fillFromConfig( config.items, factory );
+	}
+
+	/**
+	 * Returns `true` when the {@link #toolbarView} is the visible view of the contextual balloon.
+	 *
+	 * @protected
+	 * @returns {Boolean}
+	 */
+	get _isToolbarVisible() {
+		return this._balloon.visibleView === this.toolbarView;
 	}
 
 	/**
@@ -186,7 +245,19 @@ export default class BalloonToolbar extends Plugin {
 
 		// Update the toolbar position when the editor ui should be refreshed.
 		this.listenTo( this.editor.ui, 'update', () => {
-			this._balloon.updatePosition( this._getBalloonPositionData() );
+			// Don't reposition the toolbar when awaiting visibility toggle. It may cause unnecessary
+			// movement just before it disappears as a result of the toggle.
+			if ( this._isVisibilityTogglePending ) {
+				this.once( '_toggleVisibilityDebounced', () => {
+					// The toolbar could be hidden upon #_toggleVisibilityDebounced.
+					// In such case, don't re-position an invisible toolbar.
+					if ( this._isToolbarVisible ) {
+						this._updatePosition();
+					}
+				} );
+			} else {
+				this._updatePosition();
+			}
 		} );
 
 		// Add the toolbar to the common editor contextual balloon.
@@ -205,6 +276,15 @@ export default class BalloonToolbar extends Plugin {
 			this.stopListening( this.editor.ui, 'update' );
 			this._balloon.remove( this.toolbarView );
 		}
+	}
+
+	/**
+	 * Updates the position of the toolbar.
+	 *
+	 * @private
+	 */
+	_updatePosition() {
+		this._balloon.updatePosition( this._getBalloonPositionData() );
 	}
 
 	/**
@@ -255,22 +335,79 @@ export default class BalloonToolbar extends Plugin {
 	 */
 	destroy() {
 		this._fireSelectionChangeDebounced.cancel();
+		this._toggleVisibilityDebounced.cancel();
 		this.stopListening();
 		super.destroy();
 	}
 
 	/**
-	 * This event is fired just before the toolbar shows up. Stopping this event will prevent this.
+	 * This is internal plugin event which is fired 200ms after model selection last change
+	 * ({@link module:engine/model/selection~Selection#event:change:range}).
 	 *
-	 * @event show
-	 */
-
-	/**
-	 * This is internal plugin event which is fired 200 ms after model selection last change.
 	 * This is to makes easy test debounced action without need to use `setTimeout`.
+	 *
+	 *
+	 *	                               _selectionChangeDebounced                 _selectionChangeDebounced
+	 *	                                           ^                                        ^
+	 *	  change:range -----------\                |        change:range --\                |
+	 *	  change:range ----\      |                |                       |                |
+	 *	                   |      |                |                       |                |
+	 *	                   v      v                |                       v                |
+	 *	|------------------x------x----------------x-----------------------x----------------x----> [time]
+	 *	                   |------|----------------|                       |----------------|
+	 *	                    <200ms      200ms                                     200ms
 	 *
 	 * @protected
 	 * @event _selectionChangeDebounced
+	 */
+
+	/**
+	 * This is internal plugin event which is fired 10ms after the last occurrence of either:
+	 *
+	 * * {@link module:engine/model/selection~Selection#event:change:range} event,
+	 * * change of {@link module:utils/focustracker~FocusTracker#isFocused},
+	 * * {@link #event:_selectionChangeDebounced}
+	 *
+	 * This event results in either {@link #show showing} or {@link #hide hiding} of the toolbar.
+	 *
+	 * It aggregates other (async) events and thus works as a buffer. Thanks to that, the UI reacts to
+	 * just a single event, which is fired no sooner than 10ms, which ensures there's no UI flashing
+	 * such as when it shows up and disappears quickly when multiple (async) triggers are
+	 * used e.g.:
+	 *
+	 * * if the editor is blurred when the selection was *not* collapsed (toolbar was visible) and
+	 * it gets re-focused again, the toolbar may show up for a short while (`change:isFocused`) before
+	 * `change:range` is fired carrying information about collapsed selection and making the toolbar disappear,
+	 * * if the toolbar is about to disappear (e.g. due to editor focus loss), don't update its position
+	 * because otherwise it will reposition just for a fraction of the second before it is gone.
+	 *
+	 * **Note**: When fired, this event carries data (e.g. event name) of the last trigger only.
+	 *
+	 *
+	 *	                   change:isFocused ------\
+	 *	                       change:range ------|-----------> _toggleVisibilityDebounced
+	 *	          _selectionChangeDebounced ------/
+	 *
+	 *
+	 *	                   _toggleVisibilityDebounced (isFocused)              _toggleVisibilityDebounced (_sCD)
+	 *	                                   ^                                               ^
+	 *	  change:isFocused -----\          |        _selectionChangeDebounced --\          |
+	 *	  change:range ----\    |          |                                    |          |
+	 *	                   |    |          |                                    |          |
+	 *	                   v    v          |                                    v          |
+	 *	|------------------x----x----------x------------------------------------x----------x-----> [time]
+	 *	                   |----|----------|                                    |----------|
+	 *	                   <10ms    10ms                                            10ms
+	 *
+	 *	                   \---------------/                                    \----------/
+	 *	                           |                                                  |
+	 *	                           +------------------------|-------------------------+
+	 *	                                                    v
+	 *	                            Don't update toolbar position in those time slots
+	 *	                                  (it may disappear at the end of either)
+	 *
+	 * @protected
+	 * @event _toggleVisibilityDebounced
 	 */
 }
 
