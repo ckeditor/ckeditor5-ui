@@ -175,8 +175,7 @@ describe( 'ToolbarView', () => {
 			const spyAdd = sinon.spy( view.focusTracker, 'add' );
 			const spyRemove = sinon.spy( view.focusTracker, 'remove' );
 
-			view.items.add( focusable() );
-			view.items.add( focusable() );
+			view.items.add( focusable(), focusable() );
 			sinon.assert.notCalled( spyAdd );
 
 			view.render();
@@ -209,17 +208,14 @@ describe( 'ToolbarView', () => {
 				sinon.assert.calledOnce( keyEvtData.preventDefault );
 				sinon.assert.calledOnce( keyEvtData.stopPropagation );
 
-				view.items.add( nonFocusable() );
-				view.items.add( nonFocusable() );
+				view.items.add( nonFocusable(), nonFocusable() );
 
 				// No focusable children.
 				view.keystrokes.press( keyEvtData );
 				sinon.assert.calledTwice( keyEvtData.preventDefault );
 				sinon.assert.calledTwice( keyEvtData.stopPropagation );
 
-				view.items.add( focusable() );
-				view.items.add( nonFocusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), nonFocusable(), focusable() );
 
 				// Mock the last item is focused.
 				view.focusTracker.isFocused = true;
@@ -235,9 +231,7 @@ describe( 'ToolbarView', () => {
 			it( 'so "arrowleft" focuses previous focusable item', () => {
 				const keyEvtData = getArrowKeyData( 'arrowleft' );
 
-				view.items.add( focusable() );
-				view.items.add( nonFocusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), nonFocusable(), focusable() );
 
 				// Mock the last item is focused.
 				view.focusTracker.isFocused = true;
@@ -255,17 +249,14 @@ describe( 'ToolbarView', () => {
 				sinon.assert.calledOnce( keyEvtData.preventDefault );
 				sinon.assert.calledOnce( keyEvtData.stopPropagation );
 
-				view.items.add( nonFocusable() );
-				view.items.add( nonFocusable() );
+				view.items.add( nonFocusable(), nonFocusable() );
 
 				// No focusable children.
 				view.keystrokes.press( keyEvtData );
 				sinon.assert.calledTwice( keyEvtData.preventDefault );
 				sinon.assert.calledTwice( keyEvtData.stopPropagation );
 
-				view.items.add( focusable() );
-				view.items.add( nonFocusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), nonFocusable(), focusable() );
 
 				// Mock the last item is focused.
 				view.focusTracker.isFocused = true;
@@ -281,9 +272,7 @@ describe( 'ToolbarView', () => {
 			it( 'so "arrowright" focuses next focusable item', () => {
 				const keyEvtData = getArrowKeyData( 'arrowright' );
 
-				view.items.add( focusable() );
-				view.items.add( nonFocusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), nonFocusable(), focusable() );
 
 				// Mock the last item is focused.
 				view.focusTracker.isFocused = true;
@@ -329,9 +318,7 @@ describe( 'ToolbarView', () => {
 			view.focus();
 
 			// The second child is focusable.
-			view.items.add( nonFocusable() );
-			view.items.add( focusable() );
-			view.items.add( nonFocusable() );
+			view.items.add( nonFocusable(), focusable(), nonFocusable() );
 
 			view.focus();
 
@@ -345,11 +332,7 @@ describe( 'ToolbarView', () => {
 			view.focusLast();
 
 			// The second child is focusable.
-			view.items.add( nonFocusable() );
-			view.items.add( focusable() );
-			view.items.add( focusable() );
-			view.items.add( focusable() );
-			view.items.add( nonFocusable() );
+			view.items.add( nonFocusable(), focusable(), focusable(), focusable(), nonFocusable() );
 
 			view.focusLast();
 
@@ -408,9 +391,7 @@ describe( 'ToolbarView', () => {
 				const itemB = focusable();
 				const itemC = focusable();
 
-				view.items.add( itemA );
-				view.items.add( itemB );
-				view.items.add( itemC );
+				view.items.add( itemA, itemB, itemC );
 
 				expect( view.itemsView.children.map( i => i ) ).to.have.ordered.members( [ itemA, itemB, itemC ] );
 			} );
@@ -420,9 +401,7 @@ describe( 'ToolbarView', () => {
 				const itemB = focusable();
 				const itemC = focusable();
 
-				view.items.add( itemA );
-				view.items.add( itemB );
-				view.items.add( itemC );
+				view.items.add( itemA, itemB, itemC );
 
 				expect( view.focusables.map( i => i ) ).to.have.ordered.members( [ itemA, itemB, itemC ] );
 			} );
@@ -479,8 +458,7 @@ describe( 'ToolbarView', () => {
 
 				view.element.style.width = '200px';
 
-				view.items.add( itemA );
-				view.items.add( itemB );
+				view.items.add( itemA, itemB );
 
 				sinon.assert.calledTwice( view._behavior._updateGrouping );
 
@@ -510,10 +488,7 @@ describe( 'ToolbarView', () => {
 
 				view.element.style.width = '200px';
 
-				view.items.add( itemA );
-				view.items.add( itemB );
-				view.items.add( itemC );
-				view.items.add( itemD );
+				view.items.add( itemA, itemB, itemC, itemD );
 
 				sinon.spy( view._behavior, '_updateGrouping' );
 				view.items.remove( 2 );
@@ -536,10 +511,7 @@ describe( 'ToolbarView', () => {
 			const itemC = focusable();
 			const itemD = focusable();
 
-			view.items.add( itemA );
-			view.items.add( itemB );
-			view.items.add( itemC );
-			view.items.add( itemD );
+			view.items.add( itemA, itemB, itemC, itemD );
 
 			expect( ungroupedItems.map( i => i ) ).to.have.ordered.members( [ itemA ] );
 			expect( groupedItems.map( i => i ) ).to.have.ordered.members( [ itemB, itemC, itemD ] );
@@ -555,10 +527,7 @@ describe( 'ToolbarView', () => {
 			const itemC = focusable();
 			const itemD = focusable();
 
-			view.items.add( itemA );
-			view.items.add( itemB );
-			view.items.add( itemC );
-			view.items.add( itemD );
+			view.items.add( itemA, itemB, itemC, itemD );
 
 			expect( ungroupedItems.map( i => i ) ).to.have.ordered.members( [ itemA ] );
 			expect( groupedItems.map( i => i ) ).to.have.ordered.members( [ itemB, itemC, itemD ] );
@@ -577,9 +546,7 @@ describe( 'ToolbarView', () => {
 			const itemB = focusable();
 			const itemC = focusable();
 
-			view.items.add( itemA );
-			view.items.add( itemB );
-			view.items.add( itemC );
+			view.items.add( itemA, itemB, itemC );
 
 			expect( ungroupedItems.map( i => i ) ).to.have.ordered.members( [ itemA ] );
 			expect( groupedItems.map( i => i ) ).to.have.ordered.members( [ itemB, itemC ] );
@@ -633,11 +600,7 @@ describe( 'ToolbarView', () => {
 			it( 'updates the UI when the toolbar is being resized (expanding)', () => {
 				view.element.style.width = '200px';
 
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), focusable(), focusable(), focusable(), focusable() );
 
 				resizeObserverInstance._callback( [ { contentRect: new Rect( view.element ) } ] );
 				expect( ungroupedItems ).to.have.length( 1 );
@@ -653,11 +616,7 @@ describe( 'ToolbarView', () => {
 			it( 'updates the UI when the toolbar is being resized (narrowing)', () => {
 				view.element.style.width = '500px';
 
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), focusable(), focusable(), focusable(), focusable() );
 
 				resizeObserverInstance._callback( [ { contentRect: new Rect( view.element ) } ] );
 				expect( ungroupedItems ).to.have.length( 5 );
@@ -674,11 +633,7 @@ describe( 'ToolbarView', () => {
 				view.element.style.width = '500px';
 				view.element.style.height = '200px';
 
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), focusable(), focusable(), focusable(), focusable() );
 
 				sinon.spy( view._behavior, '_updateGrouping' );
 				view.element.style.width = '500px';
@@ -710,10 +665,7 @@ describe( 'ToolbarView', () => {
 				const itemC = focusable();
 				const itemD = focusable();
 
-				view.items.add( itemA );
-				view.items.add( itemB );
-				view.items.add( itemC );
-				view.items.add( itemD );
+				view.items.add( itemA, itemB, itemC, itemD );
 
 				sinon.spy( groupedItemsDropdown, 'destroy' );
 
@@ -734,10 +686,7 @@ describe( 'ToolbarView', () => {
 				const itemC = focusable();
 				const itemD = focusable();
 
-				view.items.add( itemA );
-				view.items.add( itemB );
-				view.items.add( itemC );
-				view.items.add( itemD );
+				view.items.add( itemA, itemB, itemC, itemD );
 
 				sinon.spy( view._behavior.resizeObserver, 'disconnect' );
 
@@ -748,10 +697,7 @@ describe( 'ToolbarView', () => {
 
 		describe( 'dropdown with grouped items', () => {
 			it( 'has proper DOM structure', () => {
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), focusable(), focusable(), focusable() );
 
 				expect( view.children.has( groupedItemsDropdown ) ).to.be.true;
 				expect( groupedItemsDropdown.element.classList.contains( 'ck-toolbar__grouped-dropdown' ) );
@@ -759,10 +705,7 @@ describe( 'ToolbarView', () => {
 			} );
 
 			it( 'shares its toolbarView#items with grouped items', () => {
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), focusable(), focusable(), focusable() );
 
 				expect( groupedItemsDropdown.toolbarView.items.map( i => i ) )
 					.to.have.ordered.members( groupedItems.map( i => i ) );
@@ -798,8 +741,7 @@ describe( 'ToolbarView', () => {
 				view.element.style.paddingLeft = '0px';
 				view.element.style.paddingRight = '20px';
 
-				view.items.add( focusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), focusable() );
 
 				expect( view._behavior.groupedItems ).to.have.length( 1 );
 			} );
@@ -824,8 +766,7 @@ describe( 'ToolbarView', () => {
 				view.element.style.paddingLeft = '20px';
 				view.element.style.paddingRight = '0px';
 
-				view.items.add( focusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), focusable() );
 
 				expect( view._behavior.groupedItems ).to.have.length( 1 );
 
@@ -842,8 +783,7 @@ describe( 'ToolbarView', () => {
 				const itemA = focusable();
 				const itemB = focusable();
 
-				view.items.add( itemA );
-				view.items.add( itemB );
+				view.items.add( itemA, itemB );
 
 				expect( view.focusables.map( i => i ) ).to.have.ordered.members( [ groupedItemsDropdown ] );
 
@@ -859,9 +799,7 @@ describe( 'ToolbarView', () => {
 				const itemB = focusable();
 				const itemC = focusable();
 
-				view.items.add( itemA );
-				view.items.add( itemB );
-				view.items.add( itemC );
+				view.items.add( itemA, itemB, itemC );
 
 				expect( view.focusables.map( i => i ) ).to.have.ordered.members( [ itemA, groupedItemsDropdown ] );
 

@@ -119,8 +119,7 @@ export default class ToolbarView extends View {
 		 * @readonly
 		 * @member {module:ui/viewcollection~ViewCollection}
 		 */
-		this.children = this.createCollection();
-		this.children.add( this.itemsView );
+		this.children = this.createCollection( [ this.itemsView ] );
 
 		/**
 		 * A collection of {@link #items} that take part in the focus cycling
@@ -696,8 +695,7 @@ class DynamicGrouping {
 	 */
 	_groupLastItem() {
 		if ( !this.groupedItems.length ) {
-			this.viewChildren.add( new ToolbarSeparatorView() );
-			this.viewChildren.add( this.groupedItemsDropdown );
+			this.viewChildren.add( new ToolbarSeparatorView(), this.groupedItemsDropdown );
 			this.viewFocusTracker.add( this.groupedItemsDropdown.element );
 		}
 

@@ -126,8 +126,7 @@ export default class SplitButtonView extends View {
 	render() {
 		super.render();
 
-		this.children.add( this.actionView );
-		this.children.add( this.arrowView );
+		this.children.add( this.actionView, this.arrowView );
 
 		this.focusTracker.add( this.actionView.element );
 		this.focusTracker.add( this.arrowView.element );

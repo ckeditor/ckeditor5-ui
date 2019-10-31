@@ -85,8 +85,7 @@ describe( 'DropdownPanelView', () => {
 
 			firstChildView.focus = sinon.spy();
 
-			view.children.add( firstChildView );
-			view.children.add( new View() );
+			view.children.add( firstChildView, new View() );
 
 			view.focus();
 
@@ -104,8 +103,7 @@ describe( 'DropdownPanelView', () => {
 
 			lastChildView.focusLast = sinon.spy();
 
-			view.children.add( new View() );
-			view.children.add( lastChildView );
+			view.children.add( new View(), lastChildView );
 
 			view.focusLast();
 
@@ -117,8 +115,7 @@ describe( 'DropdownPanelView', () => {
 
 			lastChildView.focus = sinon.spy();
 
-			view.children.add( new View() );
-			view.children.add( lastChildView );
+			view.children.add( new View(), lastChildView );
 
 			view.focusLast();
 

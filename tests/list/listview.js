@@ -58,8 +58,7 @@ describe( 'ListView', () => {
 			const spyRemove = sinon.spy( view.focusTracker, 'remove' );
 
 			sinon.assert.notCalled( spyAdd );
-			view.items.add( focusable() );
-			view.items.add( focusable() );
+			view.items.add( focusable(), focusable() );
 
 			view.render();
 			sinon.assert.calledTwice( spyAdd );
@@ -94,17 +93,14 @@ describe( 'ListView', () => {
 				sinon.assert.calledOnce( keyEvtData.preventDefault );
 				sinon.assert.calledOnce( keyEvtData.stopPropagation );
 
-				view.items.add( nonFocusable() );
-				view.items.add( nonFocusable() );
+				view.items.add( nonFocusable(), nonFocusable() );
 
 				// No focusable children.
 				view.keystrokes.press( keyEvtData );
 				sinon.assert.calledTwice( keyEvtData.preventDefault );
 				sinon.assert.calledTwice( keyEvtData.stopPropagation );
 
-				view.items.add( focusable() );
-				view.items.add( nonFocusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), nonFocusable(), focusable() );
 
 				// Mock the last item is focused.
 				view.focusTracker.isFocused = true;
@@ -130,17 +126,14 @@ describe( 'ListView', () => {
 				sinon.assert.calledOnce( keyEvtData.preventDefault );
 				sinon.assert.calledOnce( keyEvtData.stopPropagation );
 
-				view.items.add( nonFocusable() );
-				view.items.add( nonFocusable() );
+				view.items.add( nonFocusable(), nonFocusable() );
 
 				// No focusable children.
 				view.keystrokes.press( keyEvtData );
 				sinon.assert.calledTwice( keyEvtData.preventDefault );
 				sinon.assert.calledTwice( keyEvtData.stopPropagation );
 
-				view.items.add( focusable() );
-				view.items.add( nonFocusable() );
-				view.items.add( focusable() );
+				view.items.add( focusable(), nonFocusable(), focusable() );
 
 				// Mock the last item is focused.
 				view.focusTracker.isFocused = true;
@@ -162,9 +155,7 @@ describe( 'ListView', () => {
 			view.focus();
 
 			// The second child is focusable.
-			view.items.add( nonFocusable() );
-			view.items.add( focusable() );
-			view.items.add( nonFocusable() );
+			view.items.add( nonFocusable(), focusable(), nonFocusable() );
 
 			const spy = sinon.spy( view.items.get( 1 ), 'focus' );
 			view.focus();
@@ -179,9 +170,7 @@ describe( 'ListView', () => {
 			view.focusLast();
 
 			// The second child is focusable.
-			view.items.add( nonFocusable() );
-			view.items.add( focusable() );
-			view.items.add( nonFocusable() );
+			view.items.add( nonFocusable(), focusable(), nonFocusable() );
 
 			const spy = sinon.spy( view.items.get( 1 ), 'focus' );
 			view.focusLast();

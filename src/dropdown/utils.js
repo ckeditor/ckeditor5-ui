@@ -141,7 +141,7 @@ export function addToolbarToDropdown( dropdownView, buttons ) {
 		}
 	} );
 
-	buttons.map( view => toolbarView.items.add( view ) );
+	toolbarView.items.add( ...buttons );
 
 	dropdownView.panelView.children.add( toolbarView );
 	toolbarView.items.delegate( 'execute' ).to( dropdownView );

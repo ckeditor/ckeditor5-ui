@@ -169,8 +169,7 @@ export default class ButtonView extends View {
 			this.children.add( this.iconView );
 		}
 
-		this.children.add( this.tooltipView );
-		this.children.add( this.labelView );
+		this.children.add( this.tooltipView, this.labelView );
 	}
 
 	/**
