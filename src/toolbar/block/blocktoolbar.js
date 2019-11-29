@@ -148,15 +148,19 @@ export default class BlockToolbar extends Plugin {
 	 * @inheritDoc
 	 */
 	afterInit() {
-		const factory = this.editor.ui.componentFactory;
 		const config = this.editor.config.get( 'blockToolbar' );
+		
+		if (config) {
+			const factory = this.editor.ui.componentFactory;
+			
+			this.toolbarView.fillFromConfig( config, factory );
 
-		this.toolbarView.fillFromConfig( config, factory );
-
-		// Hide panel before executing each button in the panel.
-		for ( const item of this.toolbarView.items ) {
-			item.on( 'execute', () => this._hidePanel( true ), { priority: 'high' } );
+			// Hide panel before executing each button in the panel.
+			for ( const item of this.toolbarView.items ) {
+				item.on( 'execute', () => this._hidePanel( true ), { priority: 'high' } );
+			}
 		}
+
 	}
 
 	/**
