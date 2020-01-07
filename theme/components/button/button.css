@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -15,6 +15,10 @@ a.ck.ck-button {
 	display: inline-flex;
 	align-items: center;
 	justify-content: left;
+
+	& .ck-button__label {
+		display: none;
+	}
 
 	&.ck-button_with-text {
 		& .ck-button__label {
@@ -34,9 +38,5 @@ a.ck.ck-button {
 	/* Get rid of the native focus outline around the tooltip when focused (but not :hover). */
 	&:focus:not(:hover) {
 		@mixin ck-tooltip_disabled;
-	}
-
-	& .ck-button__label {
-		display: none;
 	}
 }
