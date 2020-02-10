@@ -56,6 +56,7 @@ describe( 'EditableUIView', () => {
 			expect( view.element.classList.contains( 'ck-rounded-corners' ) ).to.be.true;
 			expect( view.element.getAttribute( 'lang' ) ).to.equal( 'en' );
 			expect( view.element.getAttribute( 'dir' ) ).to.equal( 'ltr' );
+			expect( view.element.getAttribute( 'tabindex' ) ).to.equal( '0' );
 			expect( view._externalElement ).to.be.undefined;
 			expect( view.isRendered ).to.be.true;
 		} );

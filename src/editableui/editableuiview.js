@@ -29,6 +29,7 @@ export default class EditableUIView extends View {
 		this.setTemplate( {
 			tag: 'div',
 			attributes: {
+				tabindex: '0',
 				class: [
 					'ck',
 					'ck-content',
