@@ -258,6 +258,7 @@ export default class ContextualBalloon extends Plugin {
 		}
 
 		const stack = this._viewToStack.get( view );
+		const stackId = this._getStackId( stack );
 
 		if ( this._singleViewMode && this.visibleView === view ) {
 			this._singleViewMode = false;
@@ -280,7 +281,7 @@ export default class ContextualBalloon extends Plugin {
 		}
 
 		if ( stack.size === 1 ) {
-			this._idToStack.delete( this._getStackId( stack ) );
+			this._idToStack.delete( stackId );
 			this._numberOfStacks = this._idToStack.size;
 		} else {
 			stack.delete( view );
