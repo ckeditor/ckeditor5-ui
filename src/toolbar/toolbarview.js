@@ -62,6 +62,19 @@ export default class ToolbarView extends View {
 		this.set( 'ariaLabel', t( 'Editor toolbar' ) );
 
 		/**
+		 * The maximum width of the toolbar element.
+		 *
+		 * **Note**: When set to a specific value (e.g. `'200px'`), the value will affect the behavior of the
+		 * {@link module:ui/toolbar/toolbarview~ToolbarOptions#shouldGroupWhenFull}
+		 * option by changing the number of {@link #items} that will be displayed in the toolbar at a time.
+		 *
+		 * @observable
+		 * @default 'auto'
+		 * @member {String} #maxWidth
+		 */
+		this.set( 'maxWidth', 'auto' );
+
+		/**
 		 * A collection of toolbar items (buttons, dropdowns, etc.).
 		 *
 		 * @readonly
@@ -178,10 +191,13 @@ export default class ToolbarView extends View {
 					'ck',
 					'ck-toolbar',
 					bind.to( 'class' ),
-					bind.if( 'isCompact', 'ck-toolbar_compact' ),
+					bind.if( 'isCompact', 'ck-toolbar_compact' )
 				],
 				role: 'toolbar',
-				'aria-label': bind.to( 'ariaLabel' )
+				'aria-label': bind.to( 'ariaLabel' ),
+				style: {
+					maxWidth: bind.to( 'maxWidth' )
+				}
 			},
 
 			children: this.children,
@@ -325,7 +341,7 @@ class ItemsView extends View {
 				class: [
 					'ck',
 					'ck-toolbar__items'
-				],
+				]
 			},
 			children: this.children
 		} );
@@ -516,6 +532,15 @@ class DynamicGrouping {
 		 */
 		this.cachedPadding = null;
 
+		/**
+		 * A flag indicating that an items grouping update has been queued (e.g. due to the toolbar being visible)
+		 * and should be executed immediately the next time the toolbar shows up.
+		 *
+		 * @readonly
+		 * @member {Boolean}
+		 */
+		this.shouldUpdateGroupingOnNextResize = false;
+
 		// Only those items that were not grouped are visible to the user.
 		view.itemsView.children.bindTo( this.ungroupedItems ).using( item => item );
 
@@ -577,6 +602,7 @@ class DynamicGrouping {
 		this.viewElement = view.element;
 
 		this._enableGroupingOnResize();
+		this._enableGroupingOnMaxWidthChange( view );
 	}
 
 	/**
@@ -607,8 +633,20 @@ class DynamicGrouping {
 		// Do no grouping–related geometry analysis when the toolbar is detached from visible DOM,
 		// for instance before #render(), or after render but without a parent or a parent detached
 		// from DOM. DOMRects won't work anyway and there will be tons of warning in the console and
-		// nothing else.
+		// nothing else. This happens, for instance, when the toolbar is detached from DOM and
+		// some logic adds or removes its #items.
 		if ( !this.viewElement.ownerDocument.body.contains( this.viewElement ) ) {
+			return;
+		}
+
+		// Do not update grouping when the element is invisible. Such toolbar has DOMRect filled with zeros
+		// and that would cause all items to be grouped. Instead, queue the grouping so it runs next time
+		// the toolbar is visible (the next ResizeObserver callback execution). This is handy because
+		// the grouping could be caused by increasing the #maxWidth when the toolbar was invisible and the next
+		// time it shows up, some items could actually be ungrouped (https://github.com/ckeditor/ckeditor5/issues/6575).
+		if ( !this.viewElement.offsetParent ) {
+			this.shouldUpdateGroupingOnNextResize = true;
+
 			return;
 		}
 
@@ -694,7 +732,9 @@ class DynamicGrouping {
 
 		// TODO: Consider debounce.
 		this.resizeObserver = new ResizeObserver( this.viewElement, entry => {
-			if ( !previousWidth || previousWidth !== entry.contentRect.width ) {
+			if ( !previousWidth || previousWidth !== entry.contentRect.width || this.shouldUpdateGroupingOnNextResize ) {
+				this.shouldUpdateGroupingOnNextResize = false;
+
 				this._updateGrouping();
 
 				previousWidth = entry.contentRect.width;
@@ -702,6 +742,18 @@ class DynamicGrouping {
 		} );
 
 		this._updateGrouping();
+	}
+
+	/**
+	 * Enables the grouping functionality, just like {@link #_enableGroupingOnResize} but the difference is that
+	 * it listens to the changes of {@link module:ui/toolbar/toolbarview~ToolbarView#maxWidth} instead.
+	 *
+	 * @private
+	 */
+	_enableGroupingOnMaxWidthChange( view ) {
+		view.on( 'change:maxWidth', () => {
+			this._updateGrouping();
+		} );
 	}
 
 	/**
@@ -807,6 +859,8 @@ class DynamicGrouping {
  * When set to `true`, the toolbar will automatically group {@link module:ui/toolbar/toolbarview~ToolbarView#items} that
  * would normally wrap to the next line when there is not enough space to display them in a single row, for
  * instance, if the parent container of the toolbar is narrow.
+ *
+ * Also see: {@link module:ui/toolbar/toolbarview~ToolbarView#maxWidth}.
  *
  * @member {Boolean} module:ui/toolbar/toolbarview~ToolbarOptions#shouldGroupWhenFull
  */

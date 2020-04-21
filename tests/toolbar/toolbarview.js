@@ -180,6 +180,22 @@ describe( 'ToolbarView', () => {
 				expect( view.element.classList.contains( 'ck-toolbar_compact' ) ).to.be.true;
 			} );
 		} );
+
+		describe( 'style', () => {
+			it( 'reacts on view#maxWidth', () => {
+				view.maxWidth = '100px';
+				expect( view.element.style.maxWidth ).to.equal( '100px' );
+
+				view.maxWidth = undefined;
+				expect( view.element.style.maxWidth ).to.equal( '' );
+
+				view.maxWidth = null;
+				expect( view.element.style.maxWidth ).to.equal( '' );
+
+				view.maxWidth = '200px';
+				expect( view.element.style.maxWidth ).to.equal( '200px' );
+			} );
+		} );
 	} );
 
 	describe( 'render()', () => {
@@ -743,6 +759,63 @@ describe( 'ToolbarView', () => {
 				} ] );
 
 				sinon.assert.calledOnce( view._behavior._updateGrouping );
+			} );
+
+			it( 'does not update the state of grouped items if invisible', () => {
+				view.element.style.width = '500px';
+				view.element.style.height = '200px';
+
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+
+				expect( ungroupedItems ).to.have.length( 5 );
+				expect( groupedItems ).to.have.length( 0 );
+
+				view.element.style.display = 'none';
+				view.maxWidth = '100px';
+
+				expect( ungroupedItems ).to.have.length( 5 );
+				expect( groupedItems ).to.have.length( 0 );
+			} );
+
+			it( 'should queue the update of the grouped items state when invisible (and execute it when visible again)', () => {
+				view.maxWidth = '200px';
+
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+				view.items.add( focusable() );
+
+				expect( ungroupedItems ).to.have.length( 1 );
+				expect( groupedItems ).to.have.length( 4 );
+
+				view.element.style.display = 'none';
+
+				resizeCallback( [ {
+					target: view.element,
+					contentRect: new Rect( view.element )
+				} ] );
+
+				// Response to this change will be queued.
+				view.maxWidth = '500px';
+
+				expect( ungroupedItems ).to.have.length( 1 );
+				expect( groupedItems ).to.have.length( 4 );
+
+				// The queued items state should happen after that.
+				view.element.style.display = 'flex';
+
+				resizeCallback( [ {
+					target: view.element,
+					contentRect: new Rect( view.element )
+				} ] );
+
+				expect( ungroupedItems ).to.have.length( 5 );
+				expect( groupedItems ).to.have.length( 0 );
 			} );
 		} );
 
