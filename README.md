@@ -1,6 +1,10 @@
 CKEditor 5 UI framework
 ===========================================
 
+<h3 align=center>⚠⚠ This repository was moved ⚠⚠</h3>
+
+<p align=center>The package was moved to the <a href="https://github.com/ckeditor/ckeditor5/tree/master/packages">main repository</a>.</p>
+
 [![npm version](https://badge.fury.io/js/%40ckeditor%2Fckeditor5-ui.svg)](https://www.npmjs.com/package/@ckeditor/ckeditor5-ui)
 [![Dependency Status](https://david-dm.org/ckeditor/ckeditor5-ui/status.svg)](https://david-dm.org/ckeditor/ckeditor5-ui)
 [![devDependency Status](https://david-dm.org/ckeditor/ckeditor5-ui/dev-status.svg)](https://david-dm.org/ckeditor/ckeditor5-ui?type=dev)
